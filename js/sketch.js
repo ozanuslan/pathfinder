@@ -4,6 +4,13 @@ const canvW = 1202;
 const canvH = 802;
 const rectW = 40;
 const rectH = 40;
+const rectFillClr = [14, 39, 60];
+const rectStrokeClr = [148, 76, 192];
+const startClr = [95, 173, 86];
+const endClr = [228, 87, 46];
+const currClr = [168, 130, 221];
+const visitedClr = [14, 20, 40];
+const pathClr = [204, 164, 59];
 var gridW = Math.floor(canvW / rectW);
 var gridH = Math.floor(canvH / rectH);
 var startX = 0;
@@ -14,13 +21,13 @@ var grid = new Array(gridH);
 let unvisited = new PriorityQueue((a, b) => -a.dist > -b.dist);
 let frSlider;
 let fr = 60;
+let path;
 
 function setup() {
-    frSlider = createSlider(1, 101, 51, 1);
-    frSlider.position(canvW / 2 - 120, canvH + 10);
-    frSlider.style('width', '240px');
     createCanvas(canvW, canvH);
     background(200);
+    frSlider = createSlider(1, 101, 51, 1);
+    frSlider.style('width', '240px', 'text-align','center');
 
     // Creating the vertices
     for (var i = 0; i < gridH; i++) {
@@ -36,9 +43,9 @@ function setup() {
     let clr;
     for (var i = 0; i < gridH; i++) {
         for (var j = 0; j < gridW; j++) {
-            if (grid[i][j].dist == 0) clr = [0, 255, 0];
-            else if (i == endY && j == endX) clr = [255, 0, 0];
-            else clr = [255];
+            if (grid[i][j].dist == 0) clr = startClr;
+            else if (i == endY && j == endX) clr = endClr;
+            else clr = rectFillClr;
             fill(clr);
             rect(1 + j * rectW, 1 + i * rectH, rectW, rectH);
         }
@@ -74,53 +81,55 @@ function dijkstra() {
             temp.push(unvisited.pop());
         }
         unvisited = temp;
-
     }
     for (var i = 0; i < gridH; i++) {
         for (var j = 0; j < gridW; j++) {
-            if (grid[i][j].dist == 0) clr = [0, 255, 0];
-            else if (i == endY && j == endX) clr = [255, 0, 0];
-            else if (i == curr.y && j == curr.x) clr = [255, 0, 0];
-            else if (grid[i][j].inQueue == false) clr = [0, 0, 255];
-            else clr = [255];
+            if (grid[i][j].dist == 0) clr = startClr;
+            else if (i == endY && j == endX) clr = endClr;
+            else if (i == curr.y && j == curr.x) clr = currClr;
+            else if (grid[i][j].inQueue == false) clr = visitedClr;
+            else clr = rectFillClr;
             fill(clr);
+            stroke(rectStrokeClr);
             rect(1 + j * rectW, 1 + i * rectH, rectW, rectH);
         }
     }
     if (curr.x == endX && curr.y == endY) {
-        fill(0, 0, 255);
-        rect(1 + curr.x * rectW, 1 + curr.y * rectH, rectW, rectH);
-        let path = new Array();
-        let ver = grid[endY][endX];
-        while (ver != undefined) {
-            path.push(ver);
-            ver = ver.prev;
+        path = new Array();
+        let vertex = grid[endY][endX];
+        while (!(vertex.x == startX && vertex.y == startY)) {
+            path.push(vertex);
+            vertex = vertex.prev;
         }
-        path.forEach(function (vertex) {
-            fill(255, 255, 0);
-            rect(1 + vertex.x * rectW, 1 + vertex.y * rectH, rectW, rectH);
-        })
-        fill(0, 255, 0);
-        rect(1 + startX * rectW, 1 + startY * rectH, rectW, rectH);
-        fill(255, 0, 0);
-        rect(1 + endX * rectW, 1 + endY * rectH, rectW, rectH);
-    }
-    if (unvisited.isEmpty()) {
-        fill(0, 0, 255);
-        rect(1 + curr.x * rectW, 1 + curr.y * rectH, rectW, rectH);
+        window.draw = drawPath;
+        print("End node was found successfully.");
+    } else if (unvisited.isEmpty()) {
+        print("End node couldn't be found.");
+        window.draw = draw;
     }
 }
 
-function _neighbors(vertex) {
+function _neighbors(v) {
     var neighbors = new Array();
     for (var i = 1; i >= -1; i--) {
         for (var j = 1; j >= -1; j--) {
-            if (vertex.y + i >= 0 && vertex.y + i < gridH && vertex.x + j >= 0 && vertex.x + j < gridW) {
-                if (grid[vertex.y + i][vertex.x + j].inQueue == true) neighbors.push(grid[vertex.y + i][vertex.x + j]);
+            if (v.y + i >= 0 && v.y + i < gridH && v.x + j >= 0 && v.x + j < gridW) {
+                if (grid[v.y + i][v.x + j].inQueue == true) neighbors.push(grid[v.y + i][v.x + j]);
             }
         }
     }
     return neighbors;
+}
+
+function drawPath() {
+    frameRate(20);
+    let v = path.pop();
+    if (!(v.x == endX && v.y == endY)) {
+        fill(pathClr);
+        rect(1 + v.x * rectW, 1 + v.y * rectH, rectW, rectH);
+    } else {
+        window.draw = draw;
+    }
 }
 
 window.setup = setup;
