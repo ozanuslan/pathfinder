@@ -13,10 +13,11 @@ const visitedClr = [14, 20, 40];
 const pathClr = [204, 164, 59];
 var gridW = Math.floor(canvW / rectW);
 var gridH = Math.floor(canvH / rectH);
-var startX = random(30);
-var startY = random(20);
-var endX = random(30);
-var endY = random(20);
+var startX = Math.floor(Math.random()*15);
+var startY = Math.floor(Math.random()*10);
+var endX = Math.floor(Math.random()*15)+15;
+var endY = Math.floor(Math.random()*10)+10;
+console.log(startX+" "+startY+" "+endX+" "+endY)
 let grid = new Array(gridH);
 let unvisited = new PriorityQueue((a, b) => -a.dist > -b.dist);
 let frSlider;
